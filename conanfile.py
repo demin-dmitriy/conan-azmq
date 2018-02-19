@@ -6,66 +6,67 @@ from conans import ConanFile, CMake, tools
 import os
 
 
-class LibnameConan(ConanFile):
-    name = "libname"
-    version = "0.0.0"
-    url = "https://github.com/bincrafters/conan-libname"
+class AZMQConan(ConanFile):
+    name = "azmq"
+    version = "1.0.2"
+    url = "https://github.com/bincrafters/conan-azmq"
     description = "Keep it short"
-
-    # Indicates License type of the packaged library
-    license = "MIT"
-
-    # Packages the license for the conanfile.py
+    license = "BSL"
     exports = ["LICENSE.md"]
-
-    # Remove following lines if the target lib does not use cmake.
     exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
-
-    # Options may need to change depending on the packaged library.
     settings = "os", "arch", "compiler", "build_type"
-    options = {"shared": [True, False]}
-    default_options = "shared=False"
 
-    # Custom attributes for Bincrafters recipe conventions
     source_subfolder = "source_subfolder"
     build_subfolder = "build_subfolder"
 
-    # Use version ranges for dependencies unless there's a reason not to
-    # Update 2/9/18 - Per conan team, ranges are slow to resolve.
-    # So, with libs like zlib, updates are very rare, so we now use static version
-
-    requires = (
-        "OpenSSL/[>=1.0.2l]@conan/stable",
-        "zlib/1.2.11@conan/stable"
-    )
+    def requirements(self):
+        self.requires.add('zmq/[>=4.2.2]@bincrafters/stable')
+        self.requires.add('boost_system/[>=1.66.0]@bincrafters/stable')
+        self.requires.add('boost_log/[>=1.66.0]@bincrafters/stable')
+        self.requires.add('boost_date_time/[>=1.66.0]@bincrafters/stable')
+        self.requires.add('boost_thread/[>=1.66.0]@bincrafters/stable')
+        self.requires.add('boost_chrono/[>=1.66.0]@bincrafters/stable')
+        self.requires.add('boost_regex/[>=1.66.0]@bincrafters/stable')
+        self.requires.add('boost_random/[>=1.66.0]@bincrafters/stable')
+        self.requires.add('boost_asio/[>=1.66.0]@bincrafters/stable')
+        self.requires.add("cmake_findboost_modular/[>=1.66.0]@bincrafters/stable")
 
     def source(self):
-        source_url = "https://github.com/libauthor/libname"
+        source_url = "https://github.com/zeromq/azmq"
         tools.get("{0}/archive/v{1}.tar.gz".format(source_url, self.version))
         extracted_dir = self.name + "-" + self.version
 
-        #Rename to "source_subfolder" is a convention to simplify later steps
         os.rename(extracted_dir, self.source_subfolder)
 
+        # ensure our FindBoost.cmake is being used
+        tools.replace_in_file(os.path.join(self.source_subfolder, 'CMakeLists.txt'),
+                              'set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")',
+                              '#set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")')
+
+        # disable tests, 1.0.2 doesn't have AZMQ_NO_TESTS yet...
+        tools.replace_in_file(os.path.join(self.source_subfolder, 'CMakeLists.txt'),
+                              'add_subdirectory(test)',
+                              '#add_subdirectory(test)')
+        tools.replace_in_file(os.path.join(self.source_subfolder, 'CMakeLists.txt'),
+                              'add_subdirectory(doc)',
+                              '#add_subdirectory(doc)')
+
     def build(self):
-        cmake = CMake(self)
-        cmake.definitions["BUILD_TESTS"] = False # example
+        if self.settings.compiler == 'Visual Studio':
+            with tools.vcvars(self.settings, force=True, filter_known_paths=False):
+                self.build_cmake()
+        else:
+            self.build_cmake()
+
+    def build_cmake(self):
+        cmake = CMake(self, generator='Ninja')
         cmake.configure(build_folder=self.build_subfolder)
         cmake.build()
         cmake.install()
 
     def package(self):
-        # If the CMakeLists.txt has a proper install method, the steps below may be redundant
-        # If so, you can replace all the steps below with the word "pass"
-        include_folder = os.path.join(self.source_subfolder, "include")
-        self.copy(pattern="LICENSE", dst="license", src=self.source_subfolder)
-        self.copy(pattern="*", dst="include", src=include_folder)
-        self.copy(pattern="*.dll", dst="bin", keep_path=False)
-        self.copy(pattern="*.lib", dst="lib", keep_path=False)
-        self.copy(pattern="*.a", dst="lib", keep_path=False)
-        self.copy(pattern="*.so*", dst="lib", keep_path=False)
-        self.copy(pattern="*.dylib", dst="lib", keep_path=False)
+        self.copy(pattern="LICENSE-BOOST_1_0", dst='license', src=self.source_subfolder)
 
     def package_info(self):
-        self.cpp_info.libs = tools.collect_libs(self)
+        self.info.header_only()
