@@ -1,22 +1,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-# vim: tabstop=8 expandtab shiftwidth=4 softtabstop=4
 
-
-from bincrafters import build_template_default
-
-def add_build_requires(builds):
-    return map(add_required_installers, builds)
-
-def add_required_installers(build):
-    installers = ['ninja_installer/1.8.2@bincrafters/stable']
-    build.build_requires.update({"*" : installers})
-    return build
+from bincrafters import build_template_header_only
 
 if __name__ == "__main__":
 
-    builder = build_template_default.get_builder()
-
-    builder.items = add_build_requires(builder.items)
+    builder = build_template_header_only.get_builder()
 
     builder.run()
