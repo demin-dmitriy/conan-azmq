@@ -30,6 +30,7 @@ class AZMQConan(ConanFile):
         self.requires.add('boost_regex/[>=1.66.0]@bincrafters/stable')
         self.requires.add('boost_random/[>=1.66.0]@bincrafters/stable')
         self.requires.add('boost_asio/[>=1.66.0]@bincrafters/stable')
+        self.requires.add('boost_logic/[>=1.66.0]@bincrafters/stable')
         self.requires.add("cmake_findboost_modular/[>=1.66.0]@bincrafters/stable")
 
     def source(self):
