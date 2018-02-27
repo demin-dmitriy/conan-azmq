@@ -10,8 +10,9 @@ class AZMQConan(ConanFile):
     name = "azmq"
     version = "1.0.2"
     url = "https://github.com/bincrafters/conan-azmq"
-    description = "Keep it short"
-    license = "BSL"
+    homepage = "https://github.com/zeromq/azmq"
+    description = "C++ language binding library integrating ZeroMQ with Boost Asio"
+    license = "BSL-1.0"
     exports = ["LICENSE.md"]
     exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
@@ -57,10 +58,12 @@ class AZMQConan(ConanFile):
         cmake = CMake(self)
         cmake.configure(build_folder=self.build_subfolder)
         cmake.build()
-        cmake.install()
 
     def package(self):
-        self.copy(pattern="LICENSE-BOOST_1_0", dst='license', src=self.source_subfolder)
+        cmake = CMake(self)
+        cmake.configure(build_folder=self.build_subfolder)
+        cmake.install()
+        self.copy(pattern="LICENSE-BOOST_1_0", dst='licenses', src=self.source_subfolder)
 
     def package_info(self):
         self.info.header_only()
