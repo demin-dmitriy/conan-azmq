@@ -17,7 +17,6 @@ class AZMQConan(ConanFile):
     exports_sources = ["CMakeLists.txt"]
     generators = "cmake"
     settings = "os", "arch", "compiler", "build_type"
-
     source_subfolder = "source_subfolder"
     build_subfolder = "build_subfolder"
 
