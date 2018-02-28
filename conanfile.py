@@ -37,7 +37,6 @@ class AZMQConan(ConanFile):
         source_url = "https://github.com/zeromq/azmq"
         tools.get("{0}/archive/v{1}.tar.gz".format(source_url, self.version))
         extracted_dir = self.name + "-" + self.version
-
         os.rename(extracted_dir, self.source_subfolder)
 
         # ensure our FindBoost.cmake is being used
@@ -52,15 +51,18 @@ class AZMQConan(ConanFile):
         tools.replace_in_file(os.path.join(self.source_subfolder, 'CMakeLists.txt'),
                               'add_subdirectory(doc)',
                               '#add_subdirectory(doc)')
-
-    def build(self):
+    
+    def _configure_cmake(self):
         cmake = CMake(self)
         cmake.configure(build_folder=self.build_subfolder)
+        return cmake
+                              
+    def build(self):
+        cmake = self._configure_cmake()
         cmake.build()
 
     def package(self):
-        cmake = CMake(self)
-        cmake.configure(build_folder=self.build_subfolder)
+        cmake = self._configure_cmake()
         cmake.install()
         self.copy(pattern="LICENSE-BOOST_1_0", dst='licenses', src=self.source_subfolder)
 
