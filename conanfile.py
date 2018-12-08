@@ -24,22 +24,11 @@ class AZMQConan(ConanFile):
         self.requires.add('zmq/4.2.5@bincrafters/stable')
         self.requires.add('boost/1.67.0@conan/stable')
 
-        # It seems that package cmake_findboost_modular doesn't really depend on
-        # exact boost version, so it should be okay to use the older one.
-        self.requires.add('cmake_findboost_modular/1.66.0@bincrafters/stable')
-
     def source(self):
         source_url = 'https://codeload.github.com/zeromq/azmq'
         tools.get('{0}/zip/{1}'.format(source_url, self.version))
         extracted_dir = self.name + '-' + self.version
         os.rename(extracted_dir, self.source_subfolder)
-
-        # ensure our FindBoost.cmake is being used
-        tools.replace_in_file(
-            os.path.join(self.source_subfolder, 'CMakeLists.txt'),
-            'set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")',
-            '#set(CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/config")'
-        )
 
     def _configure_cmake(self):
         cmake = CMake(self)
